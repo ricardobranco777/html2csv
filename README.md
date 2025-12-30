@@ -4,6 +4,8 @@
 
 Transform HTML tables to CSV.
 
+Docker image available at `ghcr.io/ricardobranco777/html2csv:latest`
+
 ## Usage
 
 ```
