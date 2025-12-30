@@ -2,7 +2,7 @@
 
 # html2csv
 
-Transform HTML to CSV.
+Transform HTML tables to CSV.
 
 ## Usage
 
