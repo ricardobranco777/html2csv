@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 
@@ -24,8 +25,11 @@ type Table struct {
 	Rows  [][]string
 }
 
+const Version = "0.2.0"
+
 func main() {
 	var delim, tableSel string
+	var version bool
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] FILE\n", os.Args[0])
@@ -33,7 +37,13 @@ func main() {
 	}
 	flag.StringVarP(&delim, "delimiter", "d", ",", "delimiter")
 	flag.StringVarP(&tableSel, "table", "t", "", "select tables by index or name")
+	flag.BoolVarP(&version, "version", "", false, "print version and exit")
 	flag.Parse()
+
+	if version {
+		fmt.Printf("html2csv v%s %v %s/%s\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
+		os.Exit(0)
+	}
 
 	log.SetFlags(0)
 	log.SetPrefix("ERROR: ")

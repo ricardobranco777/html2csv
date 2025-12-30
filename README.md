@@ -10,6 +10,7 @@ Transform HTML tables to CSV.
 Usage: html2csv [OPTIONS] FILE
   -d, --delimiter string   delimiter (default ",")
   -t, --table string       select tables by index or name
+      --version            print version and exit
 ```
 
 ## Notes
