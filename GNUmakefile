@@ -19,22 +19,14 @@ ifeq ($(os),Linux)
 FLAGS   := -buildmode=pie
 endif
 
-$(BIN): *.go
-	CGO_ENABLED=$(CGO_ENABLED) $(GO) build -trimpath -ldflags="-s -w -buildid=" $(FLAGS)
-
-.PHONY: build
-build:
-	image=$$( $(DOCKER) build -q . ) && \
-	container=$$( $(DOCKER) create $$image ) && \
-	$(DOCKER) cp $$container:/usr/local/bin/$(BIN) . && \
-	$(DOCKER) rm -vf $$container && \
-	$(DOCKER) rmi $$image
+$(BIN):
+	CGO_ENABLED=$(CGO_ENABLED) $(GO) build -trimpath -ldflags="-s -w -buildid=" $(FLAGS) -o $(BIN) ./cmd/$(BIN)
 
 .PHONY: test
 test:
-	$(GO) vet
-	staticcheck
-	gofmt -s -l .
+	$(GO) vet ./...
+	staticcheck ./...
+	gofmt -s -l ./...
 
 .PHONY: lint
 lint:
@@ -42,7 +34,7 @@ lint:
 
 .PHONY: clean
 clean:
-	$(GO) clean
+	$(GO) clean -a
 
 .PHONY: gen
 gen:
