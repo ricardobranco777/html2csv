@@ -8,6 +8,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -16,14 +17,22 @@ import (
 
 import flag "github.com/spf13/pflag"
 
+type Table struct {
+	Index int
+	ID    string
+	Name  string
+	Rows  [][]string
+}
+
 func main() {
-	var delim string
+	var delim, tableSel string
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] FILE\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.StringVarP(&delim, "delimiter", "d", ",", "delimiter")
+	flag.StringVarP(&tableSel, "table", "t", "", "select tables by index or name")
 	flag.Parse()
 
 	log.SetFlags(0)
@@ -58,20 +67,41 @@ func main() {
 
 	tables := ExtractTables(doc)
 
+	sel := ParseTableSelector(tableSel)
+	tables = FilterTables(tables, sel)
+
 	if err := WriteTablesCSV(os.Stdout, tables, delimiter); err != nil {
 		log.Fatal(err)
 	}
 }
 
-func ExtractTables(doc *html.Node) [][][]string {
-	var tables [][][]string
+func ExtractTables(doc *html.Node) []Table {
+	var tables []Table
+	index := 0
 
 	var walk func(*html.Node)
 	walk = func(n *html.Node) {
 		if n.Type == html.ElementNode && n.DataAtom == atom.Table {
+			index++
+
+			var id, name string
+			for _, a := range n.Attr {
+				switch a.Key {
+				case "id":
+					id = a.Val
+				case "name":
+					name = a.Val
+				}
+			}
+
 			rows := extractTableRows(n)
 			if len(rows) > 0 {
-				tables = append(tables, rows)
+				tables = append(tables, Table{
+					Index: index,
+					ID:    id,
+					Name:  name,
+					Rows:  rows,
+				})
 			}
 		}
 		for c := n.FirstChild; c != nil; c = c.NextSibling {
@@ -81,6 +111,43 @@ func ExtractTables(doc *html.Node) [][][]string {
 	walk(doc)
 
 	return tables
+}
+
+func ParseTableSelector(s string) map[string]struct{} {
+	m := make(map[string]struct{})
+	for _, part := range strings.Split(s, ",") {
+		p := strings.TrimSpace(part)
+		if p != "" {
+			m[p] = struct{}{}
+		}
+	}
+	return m
+}
+
+func FilterTables(tables []Table, sel map[string]struct{}) []Table {
+	if len(sel) == 0 {
+		return tables
+	}
+
+	var out []Table
+	for _, t := range tables {
+		if _, ok := sel[strconv.Itoa(t.Index)]; ok {
+			out = append(out, t)
+			continue
+		}
+		if t.ID != "" {
+			if _, ok := sel[t.ID]; ok {
+				out = append(out, t)
+				continue
+			}
+		}
+		if t.Name != "" {
+			if _, ok := sel[t.Name]; ok {
+				out = append(out, t)
+			}
+		}
+	}
+	return out
 }
 
 func extractTableRows(table *html.Node) [][]string {
@@ -123,13 +190,13 @@ func normalizeRows(rows [][]string) {
 	}
 }
 
-func WriteTablesCSV(w io.Writer, tables [][][]string, delim rune) error {
+func WriteTablesCSV(w io.Writer, tables []Table, delim rune) error {
 	cw := csv.NewWriter(w)
 	cw.Comma = delim
 	defer cw.Flush()
 
-	for _, table := range tables {
-		for _, row := range table {
+	for _, t := range tables {
+		for _, row := range t.Rows {
 			if err := cw.Write(row); err != nil {
 				return err
 			}
