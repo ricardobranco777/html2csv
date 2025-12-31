@@ -19,7 +19,7 @@ ifeq ($(os),Linux)
 FLAGS   := -buildmode=pie
 endif
 
-$(BIN):
+$(BIN):	cmd/html2csv/*.go htmltable/*.go
 	CGO_ENABLED=$(CGO_ENABLED) $(GO) build -trimpath -ldflags="-s -w -buildid=" $(FLAGS) -o $(BIN) ./cmd/$(BIN)
 
 .PHONY: test

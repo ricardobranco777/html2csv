@@ -11,6 +11,7 @@ Docker image available at `ghcr.io/ricardobranco777/html2csv:latest`
 ```
 Usage: html2csv [OPTIONS] FILE
   -d, --delimiter string   delimiter (default ",")
+  -H, --no-header          skip table header
   -t, --table string       select tables by index or name
       --version            print version and exit
 ```

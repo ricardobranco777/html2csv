@@ -17,13 +17,14 @@ const Version = "0.2.0"
 
 func main() {
 	var delim, tablesel string
-	var version bool
+	var skipHeader, version bool
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] FILE\n", os.Args[0])
 		flag.PrintDefaults()
 	}
 	flag.StringVarP(&delim, "delimiter", "d", ",", "delimiter")
+	flag.BoolVarP(&skipHeader, "no-header", "H", false, "skip table header")
 	flag.StringVarP(&tablesel, "table", "t", "", "select tables by index or name")
 	flag.BoolVarP(&version, "version", "", false, "print version and exit")
 	flag.Parse()
@@ -68,6 +69,10 @@ func main() {
 		log.Fatal(err)
 	}
 	tables = sel.Apply(tables)
+
+	if skipHeader {
+		tables = htmltable.SkipHeader(tables)
+	}
 
 	enc := htmltable.NewCSVEncoder()
 	enc.Comma = delimiter
