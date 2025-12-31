@@ -183,6 +183,7 @@ func extractRows(table *html.Node) [][]string {
 	walk(table)
 
 	rows = trimEmptyColumns(rows)
+	rows = dropEmptyRows(rows)
 	normalize(rows)
 	return rows
 }
@@ -228,6 +229,23 @@ func trimEmptyColumns(rows [][]string) [][]string {
 		out = append(out, newRow)
 	}
 
+	return out
+}
+
+func dropEmptyRows(rows [][]string) [][]string {
+	out := rows[:0]
+	for _, r := range rows {
+		nonEmpty := false
+		for _, c := range r {
+			if strings.TrimSpace(c) != "" {
+				nonEmpty = true
+				break
+			}
+		}
+		if nonEmpty {
+			out = append(out, r)
+		}
+	}
 	return out
 }
 
