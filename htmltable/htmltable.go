@@ -182,8 +182,53 @@ func extractRows(table *html.Node) [][]string {
 	}
 	walk(table)
 
+	rows = trimEmptyColumns(rows)
 	normalize(rows)
 	return rows
+}
+
+func trimEmptyColumns(rows [][]string) [][]string {
+	if len(rows) == 0 {
+		return rows
+	}
+
+	// Determine max column count across all rows
+	maxCols := 0
+	for _, r := range rows {
+		if len(r) > maxCols {
+			maxCols = len(r)
+		}
+	}
+
+	keep := make([]bool, maxCols)
+
+	// Mark columns that have at least one non-empty cell
+	for c := 0; c < maxCols; c++ {
+		for _, r := range rows {
+			if c < len(r) && strings.TrimSpace(r[c]) != "" {
+				keep[c] = true
+				break
+			}
+		}
+	}
+
+	// Rebuild rows
+	out := make([][]string, 0, len(rows))
+	for _, r := range rows {
+		newRow := make([]string, 0, maxCols)
+		for c := 0; c < maxCols; c++ {
+			if keep[c] {
+				if c < len(r) {
+					newRow = append(newRow, r[c])
+				} else {
+					newRow = append(newRow, "")
+				}
+			}
+		}
+		out = append(out, newRow)
+	}
+
+	return out
 }
 
 func normalize(rows [][]string) {
