@@ -147,7 +147,6 @@ func NewCSVEncoder() *CSVEncoder {
 func (e *CSVEncoder) Encode(w io.Writer, tables []Table) error {
 	cw := csv.NewWriter(w)
 	cw.Comma = e.Comma
-	defer cw.Flush()
 
 	for _, t := range tables {
 		for _, row := range t.Rows {
@@ -157,6 +156,8 @@ func (e *CSVEncoder) Encode(w io.Writer, tables []Table) error {
 		}
 		_ = cw.Write([]string{})
 	}
+
+	cw.Flush()
 	return cw.Error()
 }
 
