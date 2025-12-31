@@ -78,7 +78,7 @@ func ParseSelector(s string) (Selector, error) {
 		return sel, nil
 	}
 
-	for _, part := range strings.Split(s, ",") {
+	for part := range strings.SplitSeq(s, ",") {
 		p := strings.TrimSpace(part)
 		if p == "" {
 			continue
