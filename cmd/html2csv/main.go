@@ -16,20 +16,24 @@ import flag "github.com/spf13/pflag"
 const Version = "0.2.0"
 
 func main() {
-	var delim, tablesel string
-	var skipHeader, version bool
+	var opts struct {
+		delim      string
+		tables     string
+		skipHeader bool
+		version    bool
+	}
 
 	flag.Usage = func() {
 		fmt.Fprintf(os.Stderr, "Usage: %s [OPTIONS] FILE\n", os.Args[0])
 		flag.PrintDefaults()
 	}
-	flag.StringVarP(&delim, "delimiter", "d", ",", "delimiter")
-	flag.BoolVarP(&skipHeader, "no-header", "H", false, "skip table header")
-	flag.StringVarP(&tablesel, "table", "t", "", "select tables by index or name")
-	flag.BoolVarP(&version, "version", "", false, "print version and exit")
+	flag.StringVarP(&opts.delim, "delimiter", "d", ",", "delimiter")
+	flag.BoolVarP(&opts.skipHeader, "no-header", "H", false, "skip table header")
+	flag.StringVarP(&opts.tables, "table", "t", "", "select tables by index or name")
+	flag.BoolVarP(&opts.version, "version", "", false, "print version and exit")
 	flag.Parse()
 
-	if version {
+	if opts.version {
 		fmt.Printf("html2csv v%s %v %s/%s\n", Version, runtime.Version(), runtime.GOOS, runtime.GOARCH)
 		os.Exit(0)
 	}
@@ -52,7 +56,7 @@ func main() {
 		defer f.Close()
 	}
 
-	r := []rune(delim)
+	r := []rune(opts.delim)
 	if len(r) != 1 {
 		fmt.Fprintf(os.Stderr, "delimiter must be a single character\n")
 		os.Exit(1)
@@ -64,13 +68,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sel, err := htmltable.ParseSelector(tablesel)
+	sel, err := htmltable.ParseSelector(opts.tables)
 	if err != nil {
 		log.Fatal(err)
 	}
 	tables = sel.Apply(tables)
 
-	if skipHeader {
+	if opts.skipHeader {
 		tables = htmltable.SkipHeader(tables)
 	}
 
