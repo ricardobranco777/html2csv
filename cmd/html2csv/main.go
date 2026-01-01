@@ -13,7 +13,7 @@ import (
 
 import flag "github.com/spf13/pflag"
 
-const Version = "0.6.0"
+const Version = "0.7.0"
 
 func main() {
 	var opts struct {
