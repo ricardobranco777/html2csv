@@ -20,6 +20,7 @@ func main() {
 		delim      string
 		tables     string
 		skipHeader bool
+		tsv        bool
 		version    bool
 	}
 
@@ -30,6 +31,7 @@ func main() {
 	flag.StringVarP(&opts.delim, "delimiter", "d", ",", "delimiter")
 	flag.BoolVarP(&opts.skipHeader, "no-header", "H", false, "skip table header")
 	flag.StringVarP(&opts.tables, "table", "t", "", "select tables by index or name")
+	flag.BoolVarP(&opts.tsv, "tsv", "T", false, "use TAB as delimiter")
 	flag.BoolVarP(&opts.version, "version", "", false, "print version and exit")
 	flag.Parse()
 
@@ -62,6 +64,9 @@ func main() {
 		os.Exit(1)
 	}
 	delimiter := r[0]
+	if opts.tsv {
+		delimiter = '\t'
+	}
 
 	tables, err := htmltable.Parse(f)
 	if err != nil {

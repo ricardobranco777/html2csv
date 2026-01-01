@@ -13,6 +13,7 @@ Usage: html2csv [OPTIONS] FILE
   -d, --delimiter string   delimiter (default ",")
   -H, --no-header          skip table header
   -t, --table string       select tables by index or name
+  -T, --tsv                use TAB as delimiter
       --version            print version and exit
 ```
 
