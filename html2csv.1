@@ -1,0 +1,138 @@
+.Dd January 1, 2026
+.Dt HTML2CSV 1
+.Os
+.Sh NAME
+.Nm html2csv
+.Nd extract HTML tables (and directory listings) to CSV/TSV
+.Sh SYNOPSIS
+.Nm
+.Op Fl HT
+.Op Fl d Ar delim
+.Op Fl t Ar selector
+.Op Fl -version
+.Op Ar file
+.Sh DESCRIPTION
+The
+.Nm
+utility parses HTML from
+.Ar file
+(or standard input if
+.Ar file
+is not provided) and writes table data as delimited text to standard output.
+.Pp
+By default,
+.Nm
+extracts every
+.Li <table>
+element and emits each row as a record.
+Between tables it emits a single blank record (an empty line).
+.Pp
+If the document contains no
+.Li <table>
+elements,
+.Nm
+attempts to recognize and parse HTTP server directory listings rendered as
+.Li <pre>
+content with a header section separated from entries by an
+.Li <hr>
+element.
+In that mode, the header is derived from the anchor texts before the
+.Li <hr>
+and each entry row is derived from the anchor text after the
+.Li <hr>
+plus the immediately following text.
+.Pp
+Field values are trimmed of leading and trailing whitespace.
+.Sh OPTIONS
+.Bl -tag -width Ds
+.It Fl d , Fl -delimiter Ar delim
+Set the output field delimiter to the single character
+.Ar delim .
+The default is a comma.
+.It Fl T , Fl -tsv
+Use a horizontal tab character as the delimiter (TSV output).
+This is equivalent to setting
+.Fl d
+to a tab and overrides any explicit
+.Fl d
+setting.
+.It Fl H , Fl -no-header
+Skip the first row of each extracted table (commonly the header row).
+This option applies to both real HTML tables and recognized directory listings.
+.It Fl t , Fl -table Ar selector
+Select which tables to output.
+.Ar selector
+is a comma-separated list of table indexes and/or table names.
+.Pp
+Indexes are 1-based and refer to the order tables appear in the document.
+Names match the
+.Li id
+or
+.Li name
+attribute of the
+.Li <table>
+element.
+.Pp
+Examples:
+.Dq Li 1,3
+(select tables 1 and 3),
+.Dq Li releases,2
+(select table with id/name
+.Dq Li releases
+and table 2).
+.It Fl -version
+Print version information and exit.
+.El
+.Sh OUTPUT
+For each selected table,
+.Nm
+writes one record per HTML row.
+If a row has fewer cells than other rows in the same table, missing cells are emitted
+as empty fields.
+.Pp
+A single empty record is written between tables.
+.Sh EXAMPLES
+Extract all tables from a local file as CSV:
+.Bd -literal -offset indent
+$ html2csv page.html
+.Ed
+.Pp
+Extract only table 2:
+.Bd -literal -offset indent
+$ html2csv -t 2 page.html
+.Ed
+.Pp
+Extract a named table (matches
+.Li id
+or
+.Li name ) :
+.Bd -literal -offset indent
+$ html2csv -t downloads page.html
+.Ed
+.Pp
+Emit TSV:
+.Bd -literal -offset indent
+$ html2csv -T page.html
+.Ed
+.Pp
+Skip headers:
+.Bd -literal -offset indent
+$ html2csv -H page.html
+.Ed
+.Pp
+Parse a directory listing from a URL:
+.Bd -literal -offset indent
+$ curl -s https://downloads.raspberrypi.com/raspios_arm64/images/ | html2csv
+.Ed
+.Sh EXIT STATUS
+.Ex -std
+.Sh AUTHORS
+.An Ricardo Branco Aq Mt rbranco@suse.de
+.Sh BUGS
+Directory listing parsing relies on a
+.Li <pre>
+block containing a header separated from entries by an
+.Li <hr>
+element, and on entry metadata being present in the text node immediately
+following each entry anchor.
+Pages that deviate substantially from this structure may not be parsed as expected.
