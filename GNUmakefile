@@ -4,13 +4,7 @@ BINDIR	= $(HOME)/bin
 GO	?= go
 DOCKER	?= podman
 
-# https://github.com/golang/go/issues/64875
-arch := $(shell uname -m)
-ifeq ($(arch),s390x)
-CGO_ENABLED := 1
-else
 CGO_ENABLED ?= 0
-endif
 
 LDFLAGS	:= -s -w -buildid= -extldflags "-static-pie"
 
