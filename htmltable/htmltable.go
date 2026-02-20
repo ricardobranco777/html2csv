@@ -63,6 +63,8 @@ func Parse(r io.Reader) ([]Table, error) {
 	if len(tables) == 0 {
 		if t, ok := parseDirectoryListing(doc); ok {
 			tables = append(tables, t)
+		} else if t, ok := parseLinkListing(doc); ok {
+			tables = append(tables, t)
 		}
 	}
 
